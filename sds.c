@@ -229,7 +229,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
     hdrlen = sdsHdrSize(type);
     assert(hdrlen + newlen + 1 > reqlen); /* Catch size_t overflow */
     if (oldtype==type) {
-        newsh = s_realloc(sh, hdrlen+newlen+1);
+        newsh = realloc(sh, hdrlen+newlen+1);
         if (newsh == NULL) return NULL;
         s = (char*)newsh+hdrlen;
     } else {
@@ -274,7 +274,7 @@ sds sdsRemoveFreeSpace(sds s) {
      * only if really needed. Otherwise if the change is huge, we manually
      * reallocate the string to use the different header type. */
     if (oldtype==type || type > SDS_TYPE_8) {
-        newsh = s_realloc(sh, oldhdrlen+len+1);
+        newsh = realloc(sh, oldhdrlen+len+1);
         if (newsh == NULL) return NULL;
         s = (char*)newsh+oldhdrlen;
     } else {
@@ -851,7 +851,7 @@ sds *sdssplitlen(const char *s, ssize_t len, const char *sep, int seplen, int *c
             sds *newtokens;
 
             slots *= 2;
-            newtokens = s_realloc(tokens,sizeof(sds)*slots);
+            newtokens = realloc(tokens,sizeof(sds)*slots);
             if (newtokens == NULL) goto cleanup;
             tokens = newtokens;
         }
@@ -1060,7 +1060,7 @@ sds *sdssplitargs(const char *line, int *argc) {
                 if (*p) p++;
             }
             /* add the token to the vector */
-            vector = s_realloc(vector,((*argc)+1)*sizeof(char*));
+            vector = realloc(vector,((*argc)+1)*sizeof(char*));
             vector[*argc] = current;
             (*argc)++;
             current = NULL;
@@ -1134,7 +1134,7 @@ sds sdsjoinsds(sds *argv, int argc, const char *sep, size_t seplen) {
  * the programs SDS is linked to, if they want to touch the SDS internals
  * even if they use a different allocator. */
 void *sds_malloc(size_t size) { return malloc(size); }
-void *sds_realloc(void *ptr, size_t size) { return s_realloc(ptr,size); }
+void *sds_realloc(void *ptr, size_t size) { return realloc(ptr,size); }
 void sds_free(void *ptr) { free(ptr); }
 
 #if defined(SDS_TEST_MAIN)
@@ -1144,6 +1144,16 @@ void sds_free(void *ptr) { free(ptr); }
 
 #define UNUSED(x) (void)(x)
 int sdsTest(void) {
+        /* Pre-condition initialization */
+    sds s = sdsnew("initial ");
+    const char *fmt = "test %i";
+    int i = 123;
+    
+    /* Tested function call */
+    s = sdscatfmt(s, fmt, i);
+    
+    /* Post-condition check */
+    sdsfree(s);
     return 0;
 }
 #endif
